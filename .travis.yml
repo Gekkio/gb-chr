@@ -19,7 +19,14 @@ addons:
       - texlive-pictures
       - texlive-xetex
 
+env:
+  global:
+    - secure: "isARr4iD3nPQPmuhoAIB+ovpK3aVKrDET3jfdCRkR5YIPC2aseiSX33MqteaTUr+0pQpfH4gEl050dLFlWirP6KIjRPIlVzQI/QJ+VEUqUEYzDR9EztEYE0ITJ+2UKtaiuLg9RAaOCvZqzmdESOjoJwbvNSnTFBEReansLWWxWzRedYhwDTpwYVbPJpY3pCsFSDLWkx/ss1EX9f56Y+mEfwxIK78ALNBZ3tQjhKAZ/T5OpH2IO0eOwM8Aldc8rZ4VGCSPZun+spblmdn7u292D6/hKN89ohpxAYzr04eykVAB2RVIRr+fDlpgluIgCQYX7vNCVPonqvTNDraF9gYPP0DkjBJWjSak7lub5l+NKOlTC36adMX9KnEwE6S31nWWrQYONvq1GCUj1J/bkh2ZU+GD8p/ngiyHQVorjYHEW4O21a3RjOwYtElO6kxgb1rYM8OIucPnk095mgUu4LRMKnr5QtC0o5d/E/xEvERX0l1Z3Sl08CpK3mtrSWHZi3TFF34ZQGNBPFEVFiYpWNJ8nFwhuiauQidjG+v6Yu8tkyjrviiU3o2LaHqeH6sw2CtEFDLcktCNftB6J1lFJbDAUQBiMiVPJLtfiK2cbMmw+aJqk7r9djGKtMyjfke+4UiOYyKCukrlTZVsXaqJHCJFsZv4mQc8xZdBa/geTLPXSw="
+    - secure: "oDLxQfQOk3MSGX5S/pKSuest/seKJ3fScPQYjuBLRDQmy3iX5HKOrSias8gNklaWAwxvZQ4YmSRCcgiRFJhVJUP7EVdWciMVglVFwVZMoLRVmAOAEELAl3hwMpBZFkTgcrICE/MFB2Wv5Tgko0m1XcXgn9oMdNExreVnv/f2w9XpwzP9JlQEQGg5LW34xkoUzhU6o+Gm0A6HWnHvWDmY/6HR8PRj2QHQNyUF8ZH2fMsAceHwylmCnbOyW+DNZr8+a2zCbTeu54vSh6fWkrlhUbEK8ZtG0KaDsvfDa//4I6ZDlosmlRT07TlPy2pW3sbQI9u/mMN/F8d8l0VduAX1/fp/4blKi/h3xSfgPn7BbTzavU9bbHo3ZKRGWpJG3Wrg8ZTBCwotP71P82xsJjWiJZyc/V8OvqNpUR50Zd34xELuPYVYmJ+LeZL/UIbtKgPZ1QamiE0aU33UKVOoU6LPCwCMcxUS1/6f21Jknce4JVrB8JrOu+CNg7EiS5XKfzkb884SLXXwYKGl5Le3svS764EMst/9NnkeALkkHQCQqYWPx6DCkuLVtiC6BuJwGY6dN+OjB8tW+vla9wN1hy5kQQQkj5jC/eF8tAw8HDLtz2mTXKJG7AOP4hkh6T+B83R/aBiAJA93Jd/12TUKOzfR7vLjA3WxxknIWSzjumonuqI="
+
 before_install:
+  - openssl aes-256-cbc -K $encrypted_356437f8cc70_key -iv $encrypted_356437f8cc70_iv -in .travis/id_rsa.enc -out .travis/id_rsa -d
+  - chmod 600 .travis/id_rsa
   - mkdir -p $HOME/bin
   - wget https://github.com/git-lfs/git-lfs/releases/download/v2.0.2/git-lfs-linux-amd64-2.0.2.tar.gz
   - tar xvfz git-lfs-linux-amd64-2.0.2.tar.gz
@@ -34,3 +41,8 @@ before_script:
 
 script:
   - make
+
+after_success:
+  - eval "$(ssh-agent -s)"
+  - ssh-add .travis/id_rsa
+  - rsync -qt -e "ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=quiet -p $DEPLOY_PORT -l travis" gbchr.pdf $DEPLOY_HOST:gbchr.pdf > /dev/null 2>&1
